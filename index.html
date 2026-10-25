@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com data:;">
+<meta name="theme-color" content="#0f172a">
+<title>Admin Attendance Control Center | SSC Intramurals 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20261025-security-patch1">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" href="./icons/ssc_logo.png">
+<link rel="apple-touch-icon" href="./icons/ssc_logo.png">
+</head>
+<body>
+<div class="stripe-mesh-bg"></div>
+
+<!-- Shown ONLY when logged out: Dedicated Full-Screen Login Portal -->
+<section id="loginPanel" class="full-screen-login">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-brand-badge">
+        <img src="./icons/ssc_logo.png" alt="SSC Logo" class="login-brand-img">
+        <span>SSC COMMAND CENTER</span>
+      </div>
+      <div class="eyebrow">OFFICER AUTHENTICATION</div>
+      <h1>Welcome back.</h1>
+      <p class="muted">Sign in with your verified SSC attendance account to access the control center.</p>
+    </div>
+    <form id="loginForm">
+      <label>
+        <span>Email address</span>
+        <input id="email" type="email" autocomplete="username" required placeholder="officer@school.edu">
+      </label>
+      <label>
+        <span>Password</span>
+        <input id="password" type="password" autocomplete="current-password" required placeholder="••••••••••••">
+      </label>
+      <button class="button primary wide login-submit-btn" type="submit">
+        <span>Sign in to Dashboard</span>
+        <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <p id="loginMessage" class="message" role="status"></p>
+    </form>
+    <div class="login-footer">
+      <p class="tiny">Restricted access. Only active, designated SSC attendance officers can record or manage official school intramurals attendance.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Shown ONLY when logged in: Complete Dashboard Shell Wrapper -->
+<div id="dashboardWrapper" class="hidden">
+<!-- Mobile Hamburger Toggle Input (Pure CSS Responsive Drawer) -->
+<input type="checkbox" id="sidebarToggle" class="sidebar-toggle-input" aria-label="Toggle navigation drawer">
+
+<!-- Backdrop Overlay for Mobile Drawer -->
+<label for="sidebarToggle" class="sidebar-backdrop" aria-hidden="true"></label>
+
+<!-- Mobile Top Header Bar (Shown on screens <= 768px) -->
+<header class="mobile-header">
+  <div class="mobile-header-left">
+    <label for="sidebarToggle" class="hamburger-btn" aria-label="Toggle navigation menu">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </label>
+    <div class="mobile-brand">
+      <div class="mobile-brand-mark">
+        <img src="./icons/ssc_logo.png" alt="SSC Logo" class="brand-logo-img">
+      </div>
+      <div class="mobile-brand-text">
+        <strong>INTRAMURALS 2026</strong>
+        <span>SSC Control Center</span>
+      </div>
+    </div>
+  </div>
+  <div class="mobile-header-right">
+    <a class="mobile-kiosk-pill" href="student.html" target="_blank" rel="noopener" title="Open Student Kiosk">
+      <span>Kiosk</span>
+      <svg class="external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+    </a>
+  </div>
+</header>
+
+<div class="dashboard-shell">
+  <!-- Executive Left Sidebar Rail (~260px) -->
+  <aside class="sidebar" id="adminSidebar">
+    <div class="sidebar-header">
+      <div class="brand-group">
+        <div class="brand-mark">
+          <img src="./icons/ssc_logo.png" alt="SSC Official Logo" class="brand-logo-img">
+        </div>
+        <div class="brand">
+          <strong>INTRAMURALS 2026</strong>
+          <span>SSC Officer Portal</span>
+        </div>
+      </div>
+      <label for="sidebarToggle" class="sidebar-close-btn" aria-label="Close sidebar">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </label>
+    </div>
+
+    <!-- Live Connectivity & System Status Card -->
+    <div class="sidebar-status-card">
+      <div class="status-indicator-badge">
+        <span class="status-dot-pulse"></span>
+        <span id="connection" class="status">Connecting…</span>
+      </div>
+      <span class="timezone-label">PST · UTC+8 (Asia/Manila)</span>
+    </div>
+
+    <!-- Command Navigation (Tab Triggers) -->
+    <nav class="sidebar-nav" aria-label="Command Navigation" role="tablist">
+      <div class="nav-section-label">COMMAND CENTER</div>
+      <button class="sidebar-nav-link active" data-target="tab-overview" type="button" role="tab" aria-selected="true">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span>Overview</span>
+      </button>
+      <button class="sidebar-nav-link" data-target="tab-schedule" type="button" role="tab" aria-selected="false">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Session Schedule</span>
+      </button>
+      <button class="sidebar-nav-link" data-target="tab-roster" type="button" role="tab" aria-selected="false">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Attendance Roster</span>
+      </button>
+      <button class="sidebar-nav-link" data-target="tab-audit" type="button" role="tab" aria-selected="false">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Audit Stream</span>
+      </button>
+      <button class="sidebar-nav-link" data-target="tab-health" type="button" role="tab" aria-selected="false">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span>System Health</span>
+      </button>
+
+      <div class="nav-section-label">PORTALS & TOOLS</div>
+      <a class="sidebar-nav-link kiosk-link" href="student.html" target="_blank" rel="noopener">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>Student Kiosk</span>
+        <svg class="external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+      </a>
+
+      <button id="installApp" class="button install-button sidebar-install-btn hidden" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span>Install app</span>
+      </button>
+    </nav>
+
+    <!-- Sidebar Bottom: Officer Profile & Sign Out Button -->
+    <div class="sidebar-footer">
+      <div class="sidebar-profile">
+        <div class="profile-avatar">
+          <img src="./icons/ssc_logo.png" alt="Officer Avatar" class="profile-avatar-img">
+        </div>
+        <div class="profile-meta">
+          <div class="profile-title">SSC Officer</div>
+          <div class="profile-role">Terminal Session</div>
+        </div>
+      </div>
+      <button id="signOut" class="button ghost sidebar-signout hidden" type="button" title="Sign out of Admin Dashboard">
+        <svg class="signout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sign out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="main-content shell">
+    <div class="main-content-inner">
+  <section id="setupNotice" class="notice">
+    <div class="notice-icon">ℹ</div>
+    <div>
+      <strong>Setup Required</strong>
+      <p>Check the Supabase project configuration in <code>app.js</code>, ensure the database schema is applied, and verify your network connectivity.</p>
+    </div>
+  </section>
+
+  <!-- Main Authenticated App Panel -->
+  <section id="appPanel" class="hidden">
+
+    <!-- Tab 1: Overview -->
+    <section id="tab-overview" class="tab-content active" role="tabpanel" aria-label="Daily Overview">
+      <div class="welcome-row">
+        <div>
+          <div class="eyebrow">ATTENDANCE OPERATIONS</div>
+          <h1>Daily Attendance Overview</h1>
+          <p class="muted">Select an event date, view current session progress, and monitor live participant attendance across all academic departments.</p>
+        </div>
+        <div class="date-pill" id="todayLabel">
+          <svg class="calendar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Philippine Time</span>
+        </div>
+      </div>
+
+      <!-- Date Picker Card -->
+      <section class="panel date-panel">
+        <div class="date-controls">
+          <label>
+            <span>Attendance Date</span>
+            <input id="attendanceDate" type="date" required>
+          </label>
+          <div class="date-note">
+            <strong id="selectedDateLabel">Today's Attendance</strong>
+            <span>Viewing active roster and session records</span>
+          </div>
+          <button id="refreshDate" class="button outline" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>Refresh Records</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Top Statistical KPI Cards -->
+      <div class="stats">
+        <article class="stat stat-registered">
+          <div class="stat-top">
+            <span>Active Students</span>
+            <div class="stat-badge">ROSTER</div>
+          </div>
+          <strong id="registeredCount">—</strong>
+          <small>Total active participants</small>
+        </article>
+
+        <article class="stat stat-amin">
+          <div class="stat-top">
+            <span>Morning In</span>
+            <div class="stat-dot dot-emerald"></div>
+          </div>
+          <strong id="morningInCount">—</strong>
+          <small>Recorded for this date</small>
+        </article>
+
+        <article class="stat stat-amout">
+          <div class="stat-top">
+            <span>Morning Out</span>
+            <div class="stat-dot dot-blue"></div>
+          </div>
+          <strong id="morningOutCount">—</strong>
+          <small>Recorded for this date</small>
+        </article>
+
+        <article class="stat stat-pmin">
+          <div class="stat-top">
+            <span>Afternoon In</span>
+            <div class="stat-dot dot-amber"></div>
+          </div>
+          <strong id="afternoonInCount">—</strong>
+          <small>Recorded for this date</small>
+        </article>
+
+        <article class="stat stat-pmout">
+          <div class="stat-top">
+            <span>Afternoon Out</span>
+            <div class="stat-dot dot-purple"></div>
+          </div>
+          <strong id="afternoonOutCount">—</strong>
+          <small>Recorded for this date</small>
+        </article>
+      </div>
+
+      <!-- Quick Action / Overview Shortcuts Card -->
+      <div class="overview-quick-cards">
+        <div class="overview-hero-card">
+          <div class="overview-hero-content">
+            <span class="eyebrow-accent">QUICK ACCESS WORKSPACE</span>
+            <h3>Intramurals 2026 Command Center</h3>
+            <p>Seamlessly navigate through the command rail to configure scheduled hours, manage the master roster with search and filters, audit real-time submissions, or inspect diagnostic telemetry.</p>
+            <div class="overview-action-pills">
+              <button class="button primary overview-nav-btn" data-target="tab-roster" type="button">
+                <span>Open Student Roster</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+              <button class="button outline overview-nav-btn" data-target="tab-schedule" type="button">
+                <span>Manage Schedule</span>
+              </button>
+              <button class="button outline overview-nav-btn" data-target="tab-audit" type="button">
+                <span>Audit Stream</span>
+              </button>
+              <button class="button outline overview-nav-btn" data-target="tab-health" type="button">
+                <span>System Health</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Session Schedule -->
+    <section id="tab-schedule" class="tab-content hidden" role="tabpanel" aria-label="Session Schedule">
+      <div class="welcome-row">
+        <div>
+          <div class="eyebrow">ADMIN SCHEDULE</div>
+          <h1>Session Schedule & Time Windows</h1>
+          <p class="muted">Configure target session hours and toggle check-in availability for the student kiosk. Times use Philippine Time (PST, 12-hour AM/PM).</p>
+        </div>
+        <span id="scheduleStatus" class="schedule-status">Not saved for this date</span>
+      </div>
+
+      <section class="panel schedule-panel">
+        <div class="schedule-grid">
+          <div class="session-card">
+            <div class="session-title">
+              <span class="session-icon sun-icon">☀</span>
+              <div>
+                <strong>Morning Session</strong>
+                <small>Session 1</small>
+              </div>
+            </div>
+            <div class="time-fields">
+              <label>
+                <span>Scheduled Time-in</span>
+                <input id="morningTimeIn" type="text" inputmode="text" autocomplete="off" placeholder="7:00 AM" value="7:00 AM" aria-describedby="timeHelp">
+              </label>
+              <label>
+                <span>Scheduled Time-out</span>
+                <input id="morningTimeOut" type="text" inputmode="text" autocomplete="off" placeholder="11:30 AM" value="11:30 AM" aria-describedby="timeHelp">
+              </label>
+            </div>
+          </div>
+
+          <div class="session-card">
+            <div class="session-title">
+              <span class="session-icon clock-icon">◷</span>
+              <div>
+                <strong>Afternoon Session</strong>
+                <small>Session 2</small>
+              </div>
+            </div>
+            <div class="time-fields">
+              <label>
+                <span>Scheduled Time-in</span>
+                <input id="afternoonTimeIn" type="text" inputmode="text" autocomplete="off" placeholder="1:00 PM" value="1:00 PM" aria-describedby="timeHelp">
+              </label>
+              <label>
+                <span>Scheduled Time-out</span>
+                <input id="afternoonTimeOut" type="text" inputmode="text" autocomplete="off" placeholder="4:30 PM" value="4:30 PM" aria-describedby="timeHelp">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Toggles for Kiosk -->
+        <div class="action-controls" aria-label="Student portal action controls">
+          <label class="action-toggle">
+            <input id="enableMorningIn" type="checkbox">
+            <span>Enable Morning Time-in</span>
+          </label>
+          <label class="action-toggle">
+            <input id="enableMorningOut" type="checkbox">
+            <span>Enable Morning Time-out</span>
+          </label>
+          <label class="action-toggle">
+            <input id="enableAfternoonIn" type="checkbox">
+            <span>Enable Afternoon Time-in</span>
+          </label>
+          <label class="action-toggle">
+            <input id="enableAfternoonOut" type="checkbox">
+            <span>Enable Afternoon Time-out</span>
+          </label>
+        </div>
+
+        <div class="schedule-footer">
+          <span id="timeHelp" class="help-text">Enter times such as 7:00 AM or 1:30 PM. Scheduled times guide the kiosk display; actual attendance is stamped with exact server timestamps.</span>
+          <button id="saveSchedule" class="button primary" type="button">Save schedule for this date</button>
+        </div>
+      </section>
+    </section>
+
+    <!-- Tab 3: Daily Roster -->
+    <section id="tab-roster" class="tab-content hidden" role="tabpanel" aria-label="Attendance Roster">
+      <div class="welcome-row">
+        <div>
+          <div class="eyebrow">DAILY ROSTER</div>
+          <h1>Master Attendance Roster</h1>
+          <p class="muted">Filter by department or status, search by student name or student number, and manage attendance records.</p>
+        </div>
+        <div class="roster-actions">
+          <button id="deactivateAllStudents" class="button danger" type="button">Deactivate All Students</button>
+          <button id="exportCsv" class="button outline export-btn" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            <span>Export Date Attendance (CSV) ↗</span>
+          </button>
+        </div>
+      </div>
+
+      <section class="panel roster-panel">
+        <!-- Search & Filters Toolbar -->
+        <div class="search-tools">
+          <label class="search-box">
+            <span class="search-icon">⌕</span>
+            <input id="searchInput" type="search" placeholder="Search by student name, department, or student number…" autocomplete="off" spellcheck="false">
+          </label>
+          <div class="filters">
+            <label>
+              <span>Department</span>
+              <select id="departmentFilter">
+                <option value="">All Departments</option>
+              </select>
+            </label>
+            <label>
+              <span>Roster type</span>
+              <select id="typeFilter">
+                <option value="">All Participants</option>
+                <option value="Student">Students Only</option>
+                <option value="SSC Officer">SSC Officers Only</option>
+              </select>
+            </label>
+            <label>
+              <span>Attendance</span>
+              <select id="attendanceStatusFilter">
+                <option value="">All Records</option>
+                <option value="present">Present Only</option>
+                <option value="absent">Absent Only</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <!-- High-End Table Wrap -->
+        <div class="table-wrap">
+          <div id="results" class="results">
+            <div class="empty-state">Sign in to view the student attendance roster.</div>
+          </div>
+        </div>
+
+        <div class="pagination">
+          <span id="pageSummary">No students shown</span>
+          <div class="page-buttons">
+            <button id="previousPage" class="button outline" type="button" disabled>← Previous</button>
+            <button id="nextPage" class="button outline" type="button" disabled>Next →</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Tab 4: Live Audit Stream -->
+    <section id="tab-audit" class="tab-content hidden" role="tabpanel" aria-label="Live Audit Stream">
+      <div class="welcome-row">
+        <div>
+          <div class="eyebrow">AUDIT FEED</div>
+          <h1>Live Attendance Activity Stream</h1>
+          <p class="muted">Instant verification feed of recorded check-ins and check-outs across physical kiosk devices.</p>
+        </div>
+        <div class="audit-header-actions">
+          <div class="audit-view-switch" role="group" aria-label="Audit feed layout mode">
+            <input type="radio" id="auditViewCards" name="auditView" class="view-radio" checked>
+            <label for="auditViewCards" class="view-tab" title="Responsive Cards View">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+              <span>Cards</span>
+            </label>
+            <input type="radio" id="auditViewStack" name="auditView" class="view-radio">
+            <label for="auditViewStack" class="view-tab" title="Stacked Stream View">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+              <span>Stack</span>
+            </label>
+          </div>
+          <span class="live-dot" id="syncStatus">● Online · synced</span>
+        </div>
+      </div>
+
+      <section class="panel recent-panel">
+        <div id="recentList" class="recent-list">
+          <div class="empty-state">Attendance activity will appear here.</div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Tab 5: System Health Diagnostics -->
+    <section id="tab-health" class="tab-content hidden" role="tabpanel" aria-label="System Health">
+      <div class="welcome-row">
+        <div>
+          <div class="eyebrow">DIAGNOSTICS & TELEMETRY</div>
+          <h1>System Health & Connectivity</h1>
+          <p class="muted">Live operational status, cloud database connectivity ping, offline synchronization pipeline, and client runtime metrics.</p>
+        </div>
+        <button id="runDiagnosticsBtn" class="button outline health-refresh-btn" type="button">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Run Diagnostic Ping</span>
+        </button>
+      </div>
+
+      <!-- Health Cards Grid -->
+      <div class="health-grid">
+        <!-- 1. Front-End Status -->
+        <article class="health-card" id="cardHealthFrontend">
+          <div class="health-card-top">
+            <div class="health-card-title">
+              <span class="health-icon">💻</span>
+              <strong>Front-End Runtime</strong>
+            </div>
+            <div id="healthFrontendBadge" class="health-badge ok">
+              <span class="health-dot dot-emerald"></span>
+              <span class="health-badge-text">Operational</span>
+            </div>
+          </div>
+          <div class="health-card-value" id="healthFrontendValue">DOM & Scripts Active</div>
+          <div class="health-card-meta">
+            <span id="healthFrontendPwa">PWA Cache: v20261025-spa1</span>
+            <span id="healthFrontendEng">Engine: Modern Browser (ES6+)</span>
+          </div>
+        </article>
+
+        <!-- 2. Network Status -->
+        <article class="health-card" id="cardHealthNetwork">
+          <div class="health-card-top">
+            <div class="health-card-title">
+              <span class="health-icon">🌐</span>
+              <strong>Network Interface</strong>
+            </div>
+            <div id="healthNetworkBadge" class="health-badge ok">
+              <span class="health-dot dot-emerald"></span>
+              <span class="health-badge-text">Online</span>
+            </div>
+          </div>
+          <div class="health-card-value" id="healthNetworkValue">Connected to Internet</div>
+          <div class="health-card-meta">
+            <span id="healthNetworkType">Mode: Low-latency uplink</span>
+            <span id="healthNetworkTz">Timezone: Asia/Manila (UTC+8)</span>
+          </div>
+        </article>
+
+        <!-- 3. Supabase Cloud Connection -->
+        <article class="health-card" id="cardHealthSupabase">
+          <div class="health-card-top">
+            <div class="health-card-title">
+              <span class="health-icon">⚡</span>
+              <strong>Supabase Database</strong>
+            </div>
+            <div id="healthSupabaseBadge" class="health-badge ok">
+              <span class="health-dot dot-emerald"></span>
+              <span class="health-badge-text">Checking…</span>
+            </div>
+          </div>
+          <div class="health-card-value" id="healthSupabaseValue">Testing Handshake…</div>
+          <div class="health-card-meta">
+            <span id="healthSupabaseLatency">Ping: Measuring…</span>
+            <span id="healthSupabaseEndpoint">Host: iyxcdaojmwbwbgtmzbrv.supabase.co</span>
+          </div>
+        </article>
+
+        <!-- 4. Offline Sync Queue -->
+        <article class="health-card" id="cardHealthQueue">
+          <div class="health-card-top">
+            <div class="health-card-title">
+              <span class="health-icon">📦</span>
+              <strong>Offline Sync Queue</strong>
+            </div>
+            <div id="healthQueueBadge" class="health-badge ok">
+              <span class="health-dot dot-emerald"></span>
+              <span class="health-badge-text">0 Pending</span>
+            </div>
+          </div>
+          <div class="health-card-value" id="healthQueueValue">Queue Clean & Synced</div>
+          <div class="health-card-meta">
+            <span id="healthQueueConflicts">Conflicts: 0 resolved</span>
+            <span id="healthQueueStorage">Storage: LocalStorage Active</span>
+          </div>
+        </article>
+      </div>
+
+      <!-- Diagnostic Telemetry Panel -->
+      <section class="panel health-telemetry-panel">
+        <div class="panel-heading">
+          <div>
+            <div class="eyebrow">RUNTIME ENVIRONMENT</div>
+            <h2>Device & Telemetry Log</h2>
+            <p class="muted small-copy">Client diagnostics for hardware kiosks, browser cache, and transaction locks.</p>
+          </div>
+          <button id="testHandshakeBtn" class="button outline" type="button">Test Handshake</button>
+        </div>
+        <div class="telemetry-table-wrap">
+          <table class="telemetry-table">
+            <tbody>
+              <tr>
+                <td><strong>Application Version</strong></td>
+                <td>SSC Intramurals 2026 Admin Dashboard (SPA Edition)</td>
+              </tr>
+              <tr>
+                <td><strong>Service Worker Status</strong></td>
+                <td id="telemetrySwStatus">Registered & Active</td>
+              </tr>
+              <tr>
+                <td><strong>Supabase Endpoint</strong></td>
+                <td><code>https://iyxcdaojmwbwbgtmzbrv.supabase.co</code></td>
+              </tr>
+              <tr>
+                <td><strong>Database Concurrency Locks</strong></td>
+                <td>Active (FOR UPDATE Row-level Locks Hardened)</td>
+              </tr>
+              <tr>
+                <td><strong>Last Diagnostic Timestamp</strong></td>
+                <td id="telemetryTimestamp">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <div class="footnote">
+      Official school attendance records · Philippine Standard Time (Asia/Manila, UTC+8). Stored records are protected by database row-level security and cryptographically synced. Use only on an authorized device.
+    </div>
+  </section>
+
+    </div>
+  </main>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js?v=20261025-security-patch1"></script>
+</body>
+</html>

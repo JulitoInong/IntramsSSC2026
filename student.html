@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:;">
+<meta name="theme-color" content="#f8fafc">
+<title>Student Attendance Portal | SSC Intramurals 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="student.css?v=20261025-security-patch1">
+<link rel="icon" type="image/png" href="./icons/ssc_logo.png">
+<link rel="apple-touch-icon" href="./icons/ssc_logo.png">
+<link rel="manifest" href="./manifest.webmanifest">
+</head>
+<body>
+<div class="ambient-glow glow-1"></div>
+<div class="ambient-glow glow-2"></div>
+<div class="ambient-glow glow-3"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand-group">
+      <div class="brand-mark">
+        <img src="./icons/ssc_logo.png" alt="SSC Official Logo" class="brand-logo-img">
+      </div>
+      <div class="brand">
+        <strong>INTRAMURALS 2026</strong>
+        <span>Official Student Check-in Station</span>
+      </div>
+    </div>
+    <div class="system-badge" id="networkBadge">
+      <span class="pulse-indicator" id="networkDot"></span>
+      <span class="system-badge-text" id="networkLabel">Online</span>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="intro">
+    <div class="eyebrow-badge">
+      <span class="badge-dot"></span>
+      <span>OFFICIAL STUDENT PORTAL</span>
+    </div>
+    <h1>Mark Your Attendance</h1>
+    <p>Search for your full name, verify your student identity, and record your check-in for the active session.</p>
+    <div class="date-pill" id="todayLabel">
+      <svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Philippine Time · Loading session…</span>
+    </div>
+  </section>
+
+  <section class="panel status-panel">
+    <div class="status-heading">
+      <div class="status-indicator-wrap">
+        <span class="status-dot" id="statusDot"></span>
+      </div>
+      <div class="status-copy">
+        <strong id="portalStatus">Checking session status…</strong>
+        <p id="portalHint">Active check-in windows are controlled by SSC Attendance Officers.</p>
+      </div>
+      <button id="refreshStatus" class="button outline refresh-btn" type="button" aria-label="Refresh status">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        <span>Refresh</span>
+      </button>
+    </div>
+    <div id="actionStatus" class="action-status"></div>
+  </section>
+
+  <section class="panel search-panel">
+    <div class="panel-header-row">
+      <label for="studentSearch" class="search-label">
+        <span class="label-text">SEARCH STUDENT ROSTER</span>
+        <span class="label-hint">Identity-protected Spotlight</span>
+      </label>
+    </div>
+    <div class="search-input">
+      <span class="search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input id="studentSearch" type="search" placeholder="Type at least 3 letters of your full name…" autocomplete="off" autocapitalize="words" spellcheck="false">
+      <button id="clearSearch" class="clear-button" type="button" aria-label="Clear search">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <p class="help">Select your name from the verified results list below. Please ensure your department and year level match your official student record.</p>
+    <div id="searchResults" class="search-results">
+      <div class="empty-state">
+        <div class="empty-icon">⌕</div>
+        <span>Start by searching for your name.</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="selectedPanel" class="panel selected-panel hidden">
+    <div class="selected-heading">
+      <div class="avatar" id="studentAvatar">ST</div>
+      <div class="student-meta-block">
+        <div class="verified-tag">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          <span>CONFIRMED IDENTITY</span>
+        </div>
+        <h2 id="selectedName">Student Name</h2>
+        <p id="selectedMeta">Department · Year Level</p>
+      </div>
+      <button id="changeStudent" class="button outline change-btn" type="button">
+        <span>Change</span>
+      </button>
+    </div>
+    <div id="studentActions" class="student-actions">
+      <div class="empty-state">Loading available actions…</div>
+    </div>
+    <div id="studentMessage" class="student-message" role="status"></div>
+  </section>
+
+  <div class="privacy-note">
+    <span>🔒 <strong>Data Privacy & Security:</strong> For student privacy, names in search results are partially masked until confirmed. Attendance entries are cryptographically stamped in Philippine Standard Time (PST).</span>
+  </div>
+</main>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="student.js?v=20261025-security-patch1"></script>
+</body>
+</html>
