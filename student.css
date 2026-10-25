@@ -1126,7 +1126,22 @@ button:disabled {
 /* Responsive Breakpoints - Mobile Overhaul */
 @media (max-width: 768px) {
   html, body {
-    overflow-x: hidden;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100% !important;
+    scroll-behavior: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: manipulation;
+  }
+
+  button, a, input, select, label {
+    touch-action: manipulation;
+  }
+
+  /* Disable heavy 100px Gaussian blur filters on mobile to eliminate scroll stutter and lag */
+  .ambient-glow {
+    display: none !important;
   }
 
   /* 1. Force Full Mobile Stacking & Containment */

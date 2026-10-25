@@ -274,7 +274,7 @@ async function runSystemDiagnostics() {
       sbBadge.innerHTML = '<span class="health-dot dot-amber"></span><span class="health-badge-text">Pinging…</span>';
       const t0 = performance.now();
       try {
-        const { error } = await db.from('event_schedule').select('event_date', { count: 'exact', head: true }).limit(1);
+        const { error } = await db.from('attendance_day_settings').select('attendance_date', { count: 'exact', head: true }).limit(1);
         const elapsed = Math.round(performance.now() - t0);
         if (error && error.code !== 'PGRST116') throw error;
         sbBadge.className = 'health-badge ok';

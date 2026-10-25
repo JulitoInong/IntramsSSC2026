@@ -2167,46 +2167,64 @@ input::placeholder {
 }
 
 @media (max-width: 768px) {
-  /* 1. Prevent Horizontal Overflow & Reset Wrapper Layout on Mobile */
+  /* 1. Eliminate Scroll Lag & Single Window Scroll Container */
   html, body {
-    overflow-x: hidden;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100% !important;
+    scroll-behavior: auto !important; /* Disables scroll interpolation lag on touch */
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: manipulation; /* Removes 300ms mobile tap delay */
+  }
+
+  button, a, input, select, label {
+    touch-action: manipulation;
+  }
+
+  .stripe-mesh-bg {
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   #dashboardWrapper {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    width: 100%;
-    position: relative;
-    overflow-x: hidden;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    height: auto !important;
+    position: relative !important;
+    overflow: visible !important;
   }
 
   .dashboard-shell {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    min-width: 0;
-    position: static;
-    z-index: auto; /* Clears stacking context trap so sidebar can overlay properly */
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    position: static !important;
+    z-index: auto !important;
+    overflow: visible !important;
   }
 
-  /* 2. Mobile-Only Fixed Top Header */
+  /* 2. Mobile-Only Fixed Top Header (60px) */
   .mobile-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 60px;
-    padding: 0 16px;
-    background: #0f172a;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-    z-index: 100;
-    box-sizing: border-box;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 60px !important;
+    padding: 0 16px !important;
+    background: #0f172a !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+    z-index: 100 !important;
+    box-sizing: border-box !important;
   }
 
   .mobile-header-left {
@@ -2301,9 +2319,6 @@ input::placeholder {
     transition: var(--transition-fast);
     flex-shrink: 0;
   }
-  .hamburger-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-  }
 
   .hamburger-line {
     display: block;
@@ -2314,7 +2329,7 @@ input::placeholder {
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
   }
 
-  /* 3. True Off-Canvas Sidebar: Fixed, Solid Dark Background, Left Transition */
+  /* 3. True Off-Canvas Sidebar (Solid Dark & Crisp) */
   .sidebar {
     position: fixed !important;
     top: 0 !important;
@@ -2323,8 +2338,8 @@ input::placeholder {
     max-width: 85vw !important;
     height: 100vh !important;
     height: 100dvh !important;
-    z-index: 1001 !important; /* Higher than overlay (1000) */
-    background: #0f172a !important; /* Solid dark color - ZERO transparency/blur bleed */
+    z-index: 1001 !important;
+    background: #0f172a !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     filter: none !important;
@@ -2338,7 +2353,6 @@ input::placeholder {
     flex-direction: column !important;
   }
 
-  /* Ensure text & links inside sidebar are crisp and unblurred */
   .sidebar *,
   .sidebar-header,
   .sidebar-nav,
@@ -2365,12 +2379,6 @@ input::placeholder {
     flex-shrink: 0;
   }
 
-  .sidebar-close-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
-  }
-
-  /* 4. Dark Semi-Transparent Backdrop Overlay Behind Sidebar */
   .sidebar-backdrop,
   .sidebar-overlay {
     display: block !important;
@@ -2381,14 +2389,13 @@ input::placeholder {
     background: rgba(2, 6, 23, 0.72) !important;
     backdrop-filter: blur(4px) !important;
     -webkit-backdrop-filter: blur(4px) !important;
-    z-index: 1000 !important; /* Directly behind sidebar (1001), but above page & header (100) */
+    z-index: 1000 !important;
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
     transition: opacity 0.3s ease, visibility 0.3s ease !important;
   }
 
-  /* 5. Open / Slide-In States (Pure CSS checkbox + JS classes) */
   #sidebarToggle:checked ~ .mobile-header .hamburger-btn .hamburger-line:nth-child(1) {
     transform: translateY(6.5px) rotate(45deg);
   }
@@ -2400,48 +2407,48 @@ input::placeholder {
     transform: translateY(-6.5px) rotate(-45deg);
   }
 
-  /* Slide sidebar to left: 0 */
   #sidebarToggle:checked ~ .dashboard-shell .sidebar,
   #sidebarToggle:checked ~ .sidebar,
   .sidebar.open,
-  .sidebar.active,
-  body.sidebar-open .sidebar,
-  #dashboardWrapper.sidebar-open .sidebar {
+  .sidebar.active {
     left: 0 !important;
   }
 
-  /* Activate backdrop overlay */
   #sidebarToggle:checked ~ .sidebar-backdrop,
   .sidebar-backdrop.active,
-  .sidebar-backdrop.open,
-  .sidebar-overlay.active,
-  .sidebar-overlay.open,
-  body.sidebar-open .sidebar-backdrop,
-  #dashboardWrapper.sidebar-open .sidebar-backdrop {
+  .sidebar-backdrop.open {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
   }
 
-  /* 6. Main Content Area takes 100% width with top padding so it doesn't hide behind mobile header */
+  /* 4. Content Area Layout & Top Header Padding (CRITICAL: 80px offset ensures ZERO titles are cut off) */
   main,
-  .main-content {
+  .main-content,
+  main.main-content,
+  main.shell {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    flex: 1 1 auto;
-    padding-top: 60px !important; /* 60px header offset */
+    flex: 1 1 auto !important;
+    padding-top: 80px !important; /* 60px header + 20px comfortable top spacing */
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 60px !important;
+    box-sizing: border-box !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .main-content-inner {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
     box-sizing: border-box !important;
   }
 
-  .main-content-inner,
-  .shell {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 20px 16px 60px !important;
-    box-sizing: border-box !important;
-  }
-  /* 7. Comprehensive Text Wrapping & Overflow Containment */
+  /* 5. Comprehensive Text Wrapping & Word-Break (Prevents 1-word-per-line vertical columns) */
   p, span, small, h1, h2, h3, h4, h5, h6, label, .help-text, .date-note, .section-title-group p {
     white-space: normal !important;
     word-wrap: break-word !important;
@@ -2450,7 +2457,7 @@ input::placeholder {
     min-width: 0 !important;
   }
 
-  /* 8. Force Vertical Stacking on Flex Headers, Rows, and Footers */
+  /* 6. Force Vertical Stacking on Flex Headers, Rows, and Footers */
   .welcome-row,
   .section-header,
   .panel-heading,
@@ -2474,12 +2481,15 @@ input::placeholder {
     box-sizing: border-box !important;
   }
 
-  /* Reset Desktop Fixed Widths and Floating Buttons */
-  .date-controls label,
+  /* 7. Strict Horizontal Containment: Reset Fixed Desktop Widths & Overflow (Prevents elements sticking out) */
+  .search-tools,
+  .search-box,
+  .filters,
   .filters label,
   .filters select,
-  .search-input-wrap,
-  .search-tools input,
+  .search-box input,
+  .date-controls label,
+  .date-controls input,
   .overview-hero-card,
   .schedule-meta-badge,
   .date-badge,
@@ -2491,14 +2501,7 @@ input::placeholder {
     box-sizing: border-box !important;
   }
 
-  .date-controls input,
-  .search-input-wrap input {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  /* 9. Button Fixes: Full-Width, Touch-Friendly, No Overlapping or Floating */
+  /* 8. Full-Width Touch Buttons: No Floating or Overlapping */
   #saveSchedule,
   #refreshRecords,
   .panel-action-btn,
@@ -2515,15 +2518,17 @@ input::placeholder {
     align-items: center !important;
     text-align: center !important;
     white-space: normal !important;
-    min-height: 44px !important;
+    min-height: 46px !important;
     margin: 0 !important;
   }
 
-  /* 10. Card & Panel Spacing Optimization */
+  /* 9. Card Spacing & Grids */
   .panel {
     padding: 18px 16px !important;
     border-radius: 16px !important;
     margin-bottom: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .overview-hero-card {
@@ -2540,23 +2545,27 @@ input::placeholder {
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
+    width: 100% !important;
   }
 
   .schedule-grid {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
+    width: 100% !important;
   }
 
   .action-controls {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
+    width: 100% !important;
   }
 
   .recent-list {
     grid-template-columns: 1fr !important;
+    width: 100% !important;
   }
 
-  /* Ensure horizontal scroll for broad data tables */
+  /* 10. High-Performance Horizontal Scroll for Broad Data Table */
   .table-wrapper {
     width: 100% !important;
     max-width: 100% !important;
@@ -2564,13 +2573,20 @@ input::placeholder {
     -webkit-overflow-scrolling: touch !important;
     display: block !important;
     box-sizing: border-box !important;
+    margin: 0 !important;
+    border-radius: 12px !important;
   }
 }
 
 @media (max-width: 480px) {
-  .main-content-inner,
-  .shell {
-    padding: 16px 12px 48px !important;
+  main,
+  .main-content,
+  main.main-content,
+  main.shell {
+    padding-top: 76px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 48px !important;
   }
 
   .stats {
