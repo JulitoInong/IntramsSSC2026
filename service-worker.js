@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ssc-intramurals-shell-v20261025-resilient-pwa2';
+const CACHE_NAME = 'ssc-intramurals-shell-v20261025-mobile-fix1';
 const CDN_CACHE = 'ssc-intramurals-cdn-v20261025-resilient2';
 
 const APP_FILES = [

@@ -2167,21 +2167,46 @@ input::placeholder {
 }
 
 @media (max-width: 768px) {
-  /* Mobile Header Bar */
+  /* 1. Prevent Horizontal Overflow & Reset Wrapper Layout on Mobile */
+  html, body {
+    overflow-x: hidden;
+  }
+
+  #dashboardWrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .dashboard-shell {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    position: static;
+    z-index: auto; /* Clears stacking context trap so sidebar can overlay properly */
+  }
+
+  /* 2. Mobile-Only Fixed Top Header */
   .mobile-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 50;
+    left: 0;
+    right: 0;
+    width: 100%;
     height: 60px;
     padding: 0 16px;
-    background: rgba(11, 17, 32, 0.95);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: #0f172a;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    z-index: 100;
+    box-sizing: border-box;
   }
 
   .mobile-header-left {
@@ -2197,8 +2222,8 @@ input::placeholder {
   }
 
   .mobile-brand-mark {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.14);
@@ -2206,12 +2231,20 @@ input::placeholder {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    padding: 1px;
+    padding: 2px;
     flex-shrink: 0;
   }
 
+  .mobile-brand-mark img,
+  .brand-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
   .mobile-brand-text strong {
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: 0.8px;
     font-weight: 800;
     color: #fff;
@@ -2252,7 +2285,7 @@ input::placeholder {
     color: #ffffff;
   }
 
-  /* Hamburger Menu Button with Animated Lines */
+  /* Hamburger Menu Button */
   .hamburger-btn {
     width: 38px;
     height: 38px;
@@ -2266,6 +2299,7 @@ input::placeholder {
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
     transition: var(--transition-fast);
+    flex-shrink: 0;
   }
   .hamburger-btn:hover {
     background: rgba(255, 255, 255, 0.12);
@@ -2280,17 +2314,40 @@ input::placeholder {
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
   }
 
-  /* Mobile Drawer Sidebar Transition */
+  /* 3. True Off-Canvas Sidebar: Fixed, Solid Dark Background, Left Transition */
   .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 280px;
-    max-width: 85vw;
-    z-index: 100;
-    transform: translateX(-100%);
-    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.45);
+    position: fixed !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 280px !important;
+    max-width: 85vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 1001 !important; /* Higher than overlay (1000) */
+    background: #0f172a !important; /* Solid dark color - ZERO transparency/blur bleed */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.6) !important;
+    transition: left 0.3s ease !important;
+    transform: none !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 20px 18px 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Ensure text & links inside sidebar are crisp and unblurred */
+  .sidebar *,
+  .sidebar-header,
+  .sidebar-nav,
+  .sidebar-nav-link,
+  .sidebar-status-card,
+  .sidebar-footer {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
   }
 
   .sidebar-close-btn {
@@ -2305,6 +2362,7 @@ input::placeholder {
     color: var(--slate-300);
     cursor: pointer;
     transition: var(--transition-fast);
+    flex-shrink: 0;
   }
 
   .sidebar-close-btn:hover {
@@ -2312,21 +2370,25 @@ input::placeholder {
     color: #fff;
   }
 
-  /* Backdrop Overlay */
-  .sidebar-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(2, 6, 23, 0.65);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    z-index: 90;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
+  /* 4. Dark Semi-Transparent Backdrop Overlay Behind Sidebar */
+  .sidebar-backdrop,
+  .sidebar-overlay {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(2, 6, 23, 0.72) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    z-index: 1000 !important; /* Directly behind sidebar (1001), but above page & header (100) */
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease, visibility 0.3s ease !important;
   }
 
-  /* Drawer Active States when checkbox is checked */
+  /* 5. Open / Slide-In States (Pure CSS checkbox + JS classes) */
   #sidebarToggle:checked ~ .mobile-header .hamburger-btn .hamburger-line:nth-child(1) {
     transform: translateY(6.5px) rotate(45deg);
   }
@@ -2337,17 +2399,47 @@ input::placeholder {
   #sidebarToggle:checked ~ .mobile-header .hamburger-btn .hamburger-line:nth-child(3) {
     transform: translateY(-6.5px) rotate(-45deg);
   }
+
+  /* Slide sidebar to left: 0 */
   #sidebarToggle:checked ~ .dashboard-shell .sidebar,
-  #sidebarToggle:checked ~ .sidebar {
-    transform: translateX(0);
-  }
-  #sidebarToggle:checked ~ .sidebar-backdrop {
-    opacity: 1;
-    pointer-events: auto;
+  #sidebarToggle:checked ~ .sidebar,
+  .sidebar.open,
+  .sidebar.active,
+  body.sidebar-open .sidebar,
+  #dashboardWrapper.sidebar-open .sidebar {
+    left: 0 !important;
   }
 
-  .main-content-inner, .shell {
-    padding: 20px 16px 60px;
+  /* Activate backdrop overlay */
+  #sidebarToggle:checked ~ .sidebar-backdrop,
+  .sidebar-backdrop.active,
+  .sidebar-backdrop.open,
+  .sidebar-overlay.active,
+  .sidebar-overlay.open,
+  body.sidebar-open .sidebar-backdrop,
+  #dashboardWrapper.sidebar-open .sidebar-backdrop {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  /* 6. Main Content Area takes 100% width with top padding so it doesn't hide behind mobile header */
+  main,
+  .main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto;
+    padding-top: 60px !important; /* 60px header offset */
+    box-sizing: border-box !important;
+  }
+
+  .main-content-inner,
+  .shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 20px 16px 60px !important;
+    box-sizing: border-box !important;
   }
   .welcome-row {
     flex-direction: column;
