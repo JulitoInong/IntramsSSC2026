@@ -1123,51 +1123,213 @@ button:disabled {
   box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45) !important;
 }
 
-/* Responsive Breakpoints */
+/* Responsive Breakpoints - Mobile Overhaul */
 @media (max-width: 768px) {
-  .shell {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 24px 16px 48px;
+  html, body {
+    overflow-x: hidden;
   }
 
-  .intro, .status-panel, .search-panel, #selectedPanel, .privacy-note {
-    grid-column: 1;
+  /* 1. Force Full Mobile Stacking & Containment */
+  .shell {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 20px 14px 56px !important;
+    box-sizing: border-box !important;
+    gap: 16px !important;
+  }
+
+  /* Reset all desktop grid positions (overrides :has(#selectedPanel:not(.hidden)) 2-column split) */
+  .intro,
+  .status-panel,
+  .search-panel,
+  #selectedPanel,
+  .privacy-note,
+  .shell:has(#selectedPanel:not(.hidden)) .search-panel,
+  #selectedPanel:not(.hidden) {
+    grid-column: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 2. Text Wrapping: Prevent 1-word-per-line vertical text squishing */
+  p, span, small, h1, h2, h3, h4, h5, h6, strong, label, .portal-hint, #studentMessage, .intro p, .help {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* 3. Panel Spacing & Layout Overhaul */
+  .panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 18px 16px !important;
+    border-radius: 16px !important;
+    margin-bottom: 14px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 4. Status Panel & Heading Stacking */
+  .status-heading {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .status-copy {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .status-indicator-wrap {
+    align-self: flex-start !important;
+  }
+
+  .refresh-btn,
+  #refreshStatus {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+  }
+
+  .action-status {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: 14px !important;
   }
 
   .status-chip {
-    max-width: none;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+  }
+
+  /* 5. Search Panel & Inputs */
+  .search-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .search-input input {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 15px !important;
+  }
+
+  .result-button {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px 14px !important;
+  }
+
+  /* 6. Selected Student Heading & Actions */
+  .selected-heading {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    padding-bottom: 16px !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+  }
+
+  .student-meta-block {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .change-btn,
+  #changeStudent {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
   }
 
   .student-actions {
-    grid-template-columns: 1fr;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .action-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 18px 16px !important;
+  }
+
+  .action-button,
+  .action-card button {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 46px !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
   }
 }
 
 @media (max-width: 480px) {
   .topbar {
-    padding: 0 16px;
+    padding: 0 14px !important;
+    height: 56px !important;
   }
 
   .system-badge-text {
-    display: none;
+    display: none !important;
   }
 
-  .action-status {
-    flex-direction: column;
+  .brand strong {
+    font-size: 13px !important;
   }
 
-  .status-chip {
-    width: 100%;
-    max-width: none;
+  .brand span {
+    font-size: 10px !important;
   }
 
-  .selected-heading {
-    align-items: flex-start;
+  .intro h1 {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
   }
 
-  .selected-heading .avatar {
-    width: 44px;
-    height: 44px;
+  .intro p {
+    font-size: 13.5px !important;
+    line-height: 1.5 !important;
+  }
+
+  .shell {
+    padding: 14px 10px 40px !important;
+    gap: 12px !important;
+  }
+
+  .panel {
+    padding: 16px 12px !important;
+  }
+
+  .date-pill {
+    font-size: 11.5px !important;
+    padding: 5px 12px !important;
+  }
+
+  #studentMessage {
+    font-size: 13px !important;
+    padding: 10px 12px !important;
   }
 }
 

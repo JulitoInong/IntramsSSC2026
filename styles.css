@@ -2441,61 +2441,158 @@ input::placeholder {
     padding: 20px 16px 60px !important;
     box-sizing: border-box !important;
   }
-  .welcome-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+  /* 7. Comprehensive Text Wrapping & Overflow Containment */
+  p, span, small, h1, h2, h3, h4, h5, h6, label, .help-text, .date-note, .section-title-group p {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
+
+  /* 8. Force Vertical Stacking on Flex Headers, Rows, and Footers */
+  .welcome-row,
+  .section-header,
+  .panel-heading,
+  .schedule-header,
+  .schedule-footer,
+  .date-controls,
+  .search-tools,
+  .filters,
+  .roster-heading,
+  .roster-actions,
+  .audit-header-actions,
+  .pagination,
+  .overview-action-pills {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Reset Desktop Fixed Widths and Floating Buttons */
+  .date-controls label,
+  .filters label,
+  .filters select,
+  .search-input-wrap,
+  .search-tools input,
+  .overview-hero-card,
+  .schedule-meta-badge,
+  .date-badge,
+  .panel,
+  .container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .date-controls input,
+  .search-input-wrap input {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 9. Button Fixes: Full-Width, Touch-Friendly, No Overlapping or Floating */
+  #saveSchedule,
+  #refreshRecords,
+  .panel-action-btn,
+  .overview-nav-btn,
+  .roster-actions .button,
+  .audit-header-actions .button,
+  .filter-btn {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    white-space: normal !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+  }
+
+  /* 10. Card & Panel Spacing Optimization */
+  .panel {
+    padding: 18px 16px !important;
+    border-radius: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .overview-hero-card {
+    padding: 20px 16px !important;
+  }
+
+  .login-card {
+    padding: 28px 18px !important;
+    border-radius: 18px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
   .stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
   }
-  .date-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .date-controls label {
-    width: 100%;
-  }
+
   .schedule-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
+
   .action-controls {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
   }
-  .search-tools {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .filters {
-    min-width: 0;
-    flex-direction: column;
-  }
+
   .recent-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
-  .audit-header-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .roster-heading {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .roster-actions {
-    width: 100%;
-    flex-direction: column;
-  }
-  .roster-actions .button {
-    width: 100%;
+
+  /* Ensure horizontal scroll for broad data tables */
+  .table-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: block !important;
+    box-sizing: border-box !important;
   }
 }
 
 @media (max-width: 480px) {
-  .stats {
-    grid-template-columns: 1fr;
+  .main-content-inner,
+  .shell {
+    padding: 16px 12px 48px !important;
   }
+
+  .stats {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
   .time-fields {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .welcome-row h1 {
+    font-size: 22px !important;
+  }
+
+  .section-header h2 {
+    font-size: 20px !important;
+  }
+
+  .panel {
+    padding: 16px 12px !important;
   }
 }
 
