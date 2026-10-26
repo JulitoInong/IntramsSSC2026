@@ -470,6 +470,22 @@ button {
   box-shadow: var(--shadow-button-hover);
 }
 
+/* Primary Action Buttons (Modals and Prominent CTAs) */
+.button.primary {
+  background: var(--blue-600);
+  color: #ffffff;
+  border: 1px solid var(--blue-700);
+  box-shadow: var(--shadow-button);
+}
+
+.button.primary:hover:not(:disabled) {
+  background: var(--blue-700);
+  border-color: var(--blue-700);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-button-hover);
+}
+
 .btn-icon {
   width: 14px;
   height: 14px;

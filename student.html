@@ -41,10 +41,10 @@
   <section class="intro">
     <div class="eyebrow-badge">
       <span class="badge-dot"></span>
-      <span>OFFICIAL STUDENT PORTAL</span>
+      <span>STUDENT CHECK-IN PORTAL</span>
     </div>
-    <h1>Mark Your Attendance</h1>
-    <p>Search for your full name, verify your student identity, and record your check-in for the active session.</p>
+    <h1>Record Your Attendance</h1>
+    <p>Find your name, confirm it's you, then tap the button to log your time-in or time-out.</p>
     <div class="date-pill" id="todayLabel">
       <svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <span>Philippine Time · Loading session…</span>
@@ -57,8 +57,8 @@
         <span class="status-dot" id="statusDot"></span>
       </div>
       <div class="status-copy">
-        <strong id="portalStatus">Checking session status…</strong>
-        <p id="portalHint">Active check-in windows are controlled by SSC Attendance Officers.</p>
+        <strong id="portalStatus">Checking if check-in is open…</strong>
+        <p id="portalHint">The SSC Officer controls when check-in is open or closed.</p>
       </div>
       <button id="refreshStatus" class="button outline refresh-btn" type="button" aria-label="Refresh status">
         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
@@ -71,24 +71,24 @@
   <section class="panel search-panel">
     <div class="panel-header-row">
       <label for="studentSearch" class="search-label">
-        <span class="label-text">SEARCH STUDENT ROSTER</span>
-        <span class="label-hint">Identity-protected Spotlight</span>
+        <span class="label-text">FIND YOUR NAME</span>
+        <span class="label-hint">Type at least 3 letters to search</span>
       </label>
     </div>
     <div class="search-input">
       <span class="search-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </span>
-      <input id="studentSearch" type="search" placeholder="Type at least 3 letters of your full name…" autocomplete="off" autocapitalize="words" spellcheck="false">
+      <input id="studentSearch" type="search" placeholder="Type your name here…" autocomplete="off" autocapitalize="words" spellcheck="false">
       <button id="clearSearch" class="clear-button" type="button" aria-label="Clear search">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
-    <p class="help">Select your name from the verified results list below. Please ensure your department and year level match your official student record.</p>
+    <p class="help">Tap your name from the list. Make sure the department and year level match yours.</p>
     <div id="searchResults" class="search-results">
       <div class="empty-state">
         <div class="empty-icon">⌕</div>
-        <span>Start by searching for your name.</span>
+        <span>Start typing your name to search.</span>
       </div>
     </div>
   </section>
@@ -105,17 +105,17 @@
         <p id="selectedMeta">Department · Year Level</p>
       </div>
       <button id="changeStudent" class="button outline change-btn" type="button">
-        <span>Change</span>
+        <span>Not me</span>
       </button>
     </div>
     <div id="studentActions" class="student-actions">
-      <div class="empty-state">Loading available actions…</div>
+      <div class="empty-state">Loading…</div>
     </div>
     <div id="studentMessage" class="student-message" role="status"></div>
   </section>
 
   <div class="privacy-note">
-    <span>🔒 <strong>Data Privacy & Security:</strong> For student privacy, names in search results are partially masked until confirmed. Attendance entries are cryptographically stamped in Philippine Standard Time (PST).</span>
+    <span>🔒 <strong>Privacy Notice:</strong> Names are partially hidden in search results to protect student privacy. Your attendance is recorded using Philippine Standard Time (PST).</span>
   </div>
 </main>
 

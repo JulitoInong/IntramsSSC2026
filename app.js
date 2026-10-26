@@ -46,6 +46,7 @@ function timeLabel(value) {
   if (Number.isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat('en-PH',{timeZone:TIME_ZONE,hour:'numeric',minute:'2-digit',hour12:true}).format(date).replace(/\s+/g,' ');
 }
+function setTodayLabel(text){const el=$('todayLabel');if(!el)return;const s=el.querySelector('span');if(s)s.textContent=text;else el.textContent=text;}
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3600)}
 function configured(){return window.supabase && SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('PASTE_') && SUPABASE_PUBLISHABLE_KEY && !SUPABASE_PUBLISHABLE_KEY.includes('PASTE_')}
 function setSignedIn(on){
@@ -110,7 +111,7 @@ function saveSnapshot(date){const old=readCache()||{userId:null,savedAt:null,par
 function todayPHTFromDate(date){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);const p=Object.fromEntries(parts.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return `${p.year}-${p.month}-${p.day}`}
 function uuid(){return crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&0x3|0x8)).toString(16)})}
 function loadCachedDate(date){const cache=readCache();if(!cache||!cache.participants?.length||!cache.dates?.[date])return false;participants=cache.participants;dailyAttendance=cache.dates[date].attendance||[];window.currentSchedule=cache.dates[date].schedule||null;scheduleSaved=!!window.currentSchedule;offlineSnapshot=cache;const values=window.currentSchedule||DEFAULT_SCHEDULE;$('morningTimeIn').value=formatDbTime(values.morning_time_in)||'7:00 AM';$('morningTimeOut').value=formatDbTime(values.morning_time_out)||'11:30 AM';$('afternoonTimeIn').value=formatDbTime(values.afternoon_time_in)||'1:00 PM';$('afternoonTimeOut').value=formatDbTime(values.afternoon_time_out)||'4:30 PM';$('enableMorningIn').checked=!!values.enable_morning_time_in;$('enableMorningOut').checked=!!values.enable_morning_time_out;$('enableAfternoonIn').checked=!!values.enable_afternoon_time_in;$('enableAfternoonOut').checked=!!values.enable_afternoon_time_out;$('scheduleStatus').textContent=window.currentSchedule?`Cached schedule · ${dateLabel(date)}`:'No saved schedule cached';$('scheduleStatus').classList.toggle('saved',!!window.currentSchedule);$('selectedDateLabel').textContent=dateLabel(date);$('registeredCount').textContent=participants.length;const deps=[...new Set(participants.map(p=>p.department).filter(Boolean))].sort((a,b)=>a.localeCompare(b));const oldDep=$('departmentFilter').value;$('departmentFilter').innerHTML='<option value="">All departments</option>'+deps.map(d=>`<option value="${safe(d)}">${safe(d)}</option>`).join('');if(deps.includes(oldDep))$('departmentFilter').value=oldDep;renderStats();renderParticipants();renderRecent();return true}
-function loadOfflineDashboard(userId){const cache=readCache();if(!cache||cache.userId!==userId||!cache.participants?.length){toast('Offline access is not ready on this device. Connect once and sign in to cache the roster first.');return false}currentOfficerUserId=userId;participants=cache.participants;offlineSnapshot=cache;setSignedIn(true);const date=$('attendanceDate').value||todayPHT();if(!loadCachedDate(date)){if(date===todayPHT()){dailyAttendance=[];window.currentSchedule=null;saveSnapshot(date);loadCachedDate(date);toast('Today’s roster is available offline, but today’s schedule was not cached. Confirm the schedule when internet returns.');}else{toast('No cached records for this date. Select today to record offline attendance.');return false;}}$('todayLabel').textContent=`Philippine Time · ${dateLabel(todayPHT())}`;updateConnectivity();toast('Offline mode: entries are saved on this device and will sync when online.');return true}
+function loadOfflineDashboard(userId){const cache=readCache();if(!cache||cache.userId!==userId||!cache.participants?.length){toast('Offline access is not ready on this device. Connect once and sign in to cache the roster first.');return false}currentOfficerUserId=userId;participants=cache.participants;offlineSnapshot=cache;setSignedIn(true);const date=$('attendanceDate').value||todayPHT();if(!loadCachedDate(date)){if(date===todayPHT()){dailyAttendance=[];window.currentSchedule=null;saveSnapshot(date);loadCachedDate(date);toast('Today’s roster is available offline, but today’s schedule was not cached. Confirm the schedule when internet returns.');}else{toast('No cached records for this date. Select today to record offline attendance.');return false;}}setTodayLabel(`Philippine Time · ${dateLabel(todayPHT())}`);updateConnectivity();toast('Offline mode: entries are saved on this device and will sync when online.');return true}
 function showError(el,msg){el.textContent=msg}
 function parse12Hour(value) {
   const match = String(value || '').trim().match(/^(\d{1,2})(?::([0-5]\d))?\s*(AM|PM)$/i);
@@ -234,7 +235,7 @@ async function runSystemDiagnostics() {
       feBadge.innerHTML = '<span class="health-dot dot-red"></span><span class="health-badge-text">Degraded</span>';
       if (feValue) feValue.textContent = 'Scripts Incomplete';
     }
-    if (fePwa) fePwa.textContent = 'PWA Cache: v20261025-spa1';
+    if (fePwa) fePwa.textContent = 'PWA Cache: v20261025-perf-fix2';
     if (feEng) feEng.textContent = `Platform: ${navigator.platform || 'Modern Browser'}`;
     if (swStatus) swStatus.textContent = ('serviceWorker' in navigator) ? 'Registered & Active (App Shell Cached)' : 'Unsupported on this device';
   }
@@ -332,7 +333,7 @@ async function init(){
     });
   }
   const today = todayPHT(); $('attendanceDate').value = today;
-  $('todayLabel').textContent = `Philippine Time · ${dateLabel(today)}`;
+  setTodayLabel(`Philippine Time · ${dateLabel(today)}`);
   $('selectedDateLabel').textContent = dateLabel(today);
   // PWA installation prompt: browser support varies by device.
   const installButton = $('installApp');
@@ -373,7 +374,7 @@ async function init(){
   });
   updateConnectivity();
 }
-$('loginForm').addEventListener('submit',async e=>{e.preventDefault();if(!db)return;const button=e.submitter;button.disabled=true;showError($('loginMessage'),'');try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;}catch(err){showError($('loginMessage'),err.message||'Unable to sign in.')}finally{button.disabled=false;}});
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();if(!db)return;const button=e.submitter||$('loginForm').querySelector('[type="submit"]');if(!button)return;button.disabled=true;showError($('loginMessage'),'');try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;}catch(err){showError($('loginMessage'),err.message||'Unable to sign in.')}finally{button.disabled=false;}});
 $('signOut').addEventListener('click',async()=>{if(db){const {error}=await db.auth.signOut();if(error)toast(error.message);else toast('Signed out.');}});
 $('searchInput').addEventListener('input',()=>{currentPage=0;renderParticipants();});
 $('departmentFilter').addEventListener('change',()=>{currentPage=0;renderParticipants();});
@@ -383,6 +384,7 @@ $('attendanceDate').addEventListener('change',async()=>{if(!$('attendanceDate').
 $('refreshDate').addEventListener('click',async()=>{if(navigator.onLine){serverOffline=false;await loadDashboard();}else await loadSelectedDate();});
 $('saveSchedule').addEventListener('click',saveSchedule);
 if($('deactivateAllStudents'))$('deactivateAllStudents').addEventListener('click',deactivateAllStudents);
+if($('clearAttendanceBtn'))$('clearAttendanceBtn').addEventListener('click',clearAttendance);
 $('exportCsv').addEventListener('click',exportCsv);
 $('previousPage').addEventListener('click',()=>{if(currentPage>0){currentPage--;renderParticipants();}});
 $('nextPage').addEventListener('click',()=>{currentPage++;renderParticipants();});
@@ -457,7 +459,7 @@ async function loadSelectedDate(){
     $('enableMorningIn').checked=!!values.enable_morning_time_in;$('enableMorningOut').checked=!!values.enable_morning_time_out;$('enableAfternoonIn').checked=!!values.enable_afternoon_time_in;$('enableAfternoonOut').checked=!!values.enable_afternoon_time_out;
     $('scheduleStatus').textContent=schedule?`Saved for ${dateLabel(date)}`:'Example defaults · not saved';
     $('scheduleStatus').classList.toggle('saved',!!schedule);
-    $('todayLabel').textContent=`Philippine Time · ${dateLabel(todayPHT())}`;
+    setTodayLabel(`Philippine Time · ${dateLabel(todayPHT())}`);
     $('saveSchedule').textContent=`Save schedule for ${dateLabel(date)}`;
     $('saveSchedule').disabled=false;
     renderStats();renderParticipants();renderRecent();saveSnapshot(date);updateConnectivity();
@@ -507,22 +509,22 @@ function renderParticipants(){
   }).join(''):'<div class="empty-state">No matching students. Check the spelling or filters.</div>';
   $('results').querySelectorAll('[data-participant]').forEach(btn=>btn.addEventListener('click',()=>recordAction(btn.dataset.participant,btn.dataset.action,btn)));
   $('results').querySelectorAll('[data-delete-participant]').forEach(btn=>btn.addEventListener('click',()=>deleteAttendanceAction(btn.dataset.deleteParticipant,btn.dataset.deleteAction,btn)));
-  if(!currentDay)$('results').insertAdjacentHTML('afterbegin','<div class="readonly-note">Viewing a previous date. New attendance actions are disabled, but authorized officers can delete an erroneous recorded entry.</div>');
+  if(!currentDay)$('results').insertAdjacentHTML('afterbegin','<div class="readonly-note">Viewing a previous date. New check-ins are closed, but officers can delete an accidental entry if needed.</div>');
 }
 
 async function deleteAttendanceAction(participantId,action,button){
   const person=participants.find(p=>p.id===participantId);const slot=ACTIONS.find(x=>x.action===action);const date=$('attendanceDate').value||todayPHT();
   if(!person||!slot)return;
   const existing=attendanceByParticipant().get(participantId)||{};
-  if(!existing[slot.key]){toast('That attendance entry is already empty.');return;}
-  if(!navigator.onLine||serverOffline){toast('Deleting attendance requires an internet connection so the deletion can be protected from old offline sync entries.');return;}
-  const confirmed=await showConfirmModal(`Delete ${slot.label} (${timeLabel(existing[slot.key])}) for ${person.full_name} on ${dateLabel(date)}?\n\nOnly this attendance entry will be deleted. Other time-in/time-out entries and the student roster will remain.`);
+  if(!existing[slot.key]){toast('This entry is already empty.');return;}
+  if(!navigator.onLine||serverOffline){toast('You need to be connected to the internet to delete an attendance entry.');return;}
+  const confirmed=await showConfirmModal(`Delete ${slot.label} (${timeLabel(existing[slot.key])}) for ${person.full_name} on ${dateLabel(date)}?\n\nOnly this check-in entry will be deleted. Student information and other attendance entries will remain.`);
   if(!confirmed)return;
   button.disabled=true;button.textContent='Deleting…';
   try{
     const {data,error}=await db.rpc('delete_attendance_action',{p_participant_id:participantId,p_attendance_date:date,p_action:action});
     if(error)throw error;
-    if(data!==true)throw new Error('The database did not delete an attendance entry. Refresh the records and try again.');
+    if(data!==true)throw new Error('Could not delete this entry. Please refresh and try again.');
     // Remove matching unsynced local events only after the server has accepted the deletion.
     const queue=readQueue().filter(x=>!(x.participant_id===participantId&&x.attendance_date===date&&x.action===action));
     writeQueue(queue);
@@ -637,13 +639,13 @@ async function syncOfflineQueue(){
 
 
 async function deactivateAllStudents(){
-  if(!db||!navigator.onLine||serverOffline){toast('Roster changes require an internet connection. No changes were made.');return;}
+  if(!db||!navigator.onLine||serverOffline){toast('You need to be connected to the internet to update the student list. No changes were made.');return;}
   const studentIds=new Set(participants.filter(p=>p.participant_type==='Student').map(p=>p.id));
-  if(!studentIds.size){toast('There are no active student records to deactivate.');return;}
+  if(!studentIds.size){toast('There are no active students to deactivate.');return;}
   const pending=readQueue().filter(e=>studentIds.has(e.participant_id)&&e.status!=='conflict');
-  if(pending.length){toast(`Cannot deactivate all students: ${pending.length} offline attendance item(s) are queued. Sync or resolve them first.`);return;}
-  const confirmation=await showPromptModal(`WARNING: This will remove ${studentIds.size} active student records from the roster. Their database rows and attendance history will be preserved as inactive.\n\nType DEACTIVATE ALL STUDENTS to continue:`);
-  if(confirmation!=='DEACTIVATE ALL STUDENTS'){toast('No changes made.');return;}
+  if(pending.length){toast(`Cannot deactivate students right now: ${pending.length} unsaved check-in(s) are still waiting to upload on this device. Please sync them first.`);return;}
+  const confirmation=await showPromptModal(`Warning: This will hide ${studentIds.size} student(s) from the active list so they cannot check in. Past attendance records are safely kept in history.\n\nType DEACTIVATE ALL STUDENTS to confirm:`);
+  if(confirmation!=='DEACTIVATE ALL STUDENTS'){toast('No changes were made.');return;}
   const button=$('deactivateAllStudents');button.disabled=true;button.textContent='Working…';
   try{
     const {data,error}=await db.rpc('deactivate_all_students');
@@ -652,10 +654,116 @@ async function deactivateAllStudents(){
     dailyAttendance=dailyAttendance.filter(a=>!studentIds.has(a.participant_id));
     updateLocalRosterCache(studentIds);
     currentPage=0;renderStats();renderParticipants();renderRecent();updateConnectivity();
-    toast(`${data ?? studentIds.size} student record(s) deactivated. Attendance history remains in the database.`);
+    toast(`${data ?? studentIds.size} student(s) deactivated. Past attendance records remain saved.`);
     setTimeout(()=>loadDashboard(),800);
-  }catch(err){toast(err.message||'Could not deactivate students. Apply student-deletion-admin.sql in Supabase SQL Editor, then try again.');}
+  }catch(err){toast(err.message||'Could not deactivate students. Please run student-deletion-admin.sql in Supabase first, then try again.');}
   finally{button.disabled=false;button.textContent='Deactivate all students';}
+}
+
+async function clearAttendance(){
+  if(!db||!navigator.onLine||serverOffline){toast('You need to be connected to the internet to clear attendance. No changes were made.');return;}
+  const selectedDate=$('attendanceDate').value||todayPHT();
+
+  // --- Step 1: Show scope-choice modal (Selected Date vs All Dates) ---
+  const scopeModal=await new Promise(resolve=>{
+    const existing=document.getElementById('_clearScopeModal');if(existing)existing.remove();
+    const modal=document.createElement('div');modal.id='_clearScopeModal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+    // All button styles are fully inline so they render identically on every device/browser
+    // regardless of whether the external stylesheet has loaded or which classes are scoped.
+    const btnBase='display:block;width:100%;box-sizing:border-box;text-align:left;padding:.75rem 1rem;border-radius:8px;border:1.5px solid #fca5a5;background:#fff1f2;color:#b91c1c;font-family:inherit;font-size:.9rem;cursor:pointer;line-height:1.4';
+    const btnCancel='display:inline-flex;align-items:center;padding:.5rem 1.25rem;border-radius:8px;border:1.5px solid #d1d5db;background:#fff;color:#374151;font-family:inherit;font-size:.875rem;cursor:pointer';
+    modal.innerHTML=`<div style="background:#fff;border-radius:12px;padding:1.75rem;max-width:460px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+      <div style="font-size:.68rem;font-weight:700;letter-spacing:.09em;color:#ef4444;text-transform:uppercase;margin-bottom:.4rem">Warning</div>
+      <p style="margin:0 0 .75rem;font-weight:600;font-size:1rem;color:#111">Clear attendance records?</p>
+      <p style="margin:0 0 1.25rem;font-size:.85rem;color:#555">This will <strong>permanently delete</strong> the time-in and time-out logs. Student names will still be on the roster, but all their check-in records will be erased. Which records do you want to clear?</p>
+      <div style="display:flex;flex-direction:column;gap:.625rem;margin-bottom:1.5rem">
+        <button type="button" id="_scopeBtnDate" style="${btnBase}">
+          <strong style="display:block;margin-bottom:.15rem">This date only</strong>
+          <span style="font-size:.8rem;opacity:.8">${dateLabel(selectedDate)}</span>
+        </button>
+        <button type="button" id="_scopeBtnAll" style="${btnBase}">
+          <strong style="display:block;margin-bottom:.15rem">All dates (entire event)</strong>
+          <span style="font-size:.8rem;opacity:.8">Removes every check-in record from all days of the event</span>
+        </button>
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <button type="button" id="_scopeBtnCancel" style="${btnCancel}">Cancel</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#_scopeBtnDate').onclick=()=>{modal.remove();resolve('date');};
+    modal.querySelector('#_scopeBtnAll').onclick=()=>{modal.remove();resolve('all');};
+    modal.querySelector('#_scopeBtnCancel').onclick=()=>{modal.remove();resolve(null);};
+    // Allow Escape key and backdrop click to cancel (accessibility + consistency with other modals)
+    const onKey=(e)=>{if(e.key==='Escape'){modal.remove();window.removeEventListener('keydown',onKey);resolve(null);}};
+    window.addEventListener('keydown',onKey);
+    modal.addEventListener('click',(e)=>{if(e.target===modal){modal.remove();window.removeEventListener('keydown',onKey);resolve(null);}});
+  });
+  if(!scopeModal){toast('No changes were made.');return;}
+
+  // --- Step 2: Check offline queue before proceeding ---
+  // Use ALL participant IDs (students and officers) so pending queue entries for any
+  // participant type are caught before clearing, preventing data loss.
+  const allParticipantIds=new Set(participants.map(p=>p.id));
+  const queueForScope=readQueue().filter(e=>{
+    if(e.status==='conflict')return false;
+    if(scopeModal==='all')return allParticipantIds.has(e.participant_id);
+    return allParticipantIds.has(e.participant_id)&&e.attendance_date===selectedDate;
+  });
+  if(queueForScope.length){
+    toast(`Cannot clear attendance right now — there ${queueForScope.length===1?'is':'are'} ${queueForScope.length} unsaved check-in(s) on this device that haven't been uploaded yet. Please wait for them to sync first.`);
+    return;
+  }
+
+  // --- Step 3: Type-to-confirm prompt ---
+  const confirmPhrase=scopeModal==='all'?'CLEAR ALL ATTENDANCE':'CLEAR ATTENDANCE';
+  const confirmation=await showPromptModal(
+    scopeModal==='all'
+      ? `Are you sure? This will erase all check-in records from every day of the event.\n\nStudent names will remain, but all time-in and time-out logs will be deleted. This cannot be undone.\n\nType CLEAR ALL ATTENDANCE to confirm:`
+      : `Are you sure? This will erase all check-in records for ${dateLabel(selectedDate)}.\n\nRecords from other dates will not be affected. This cannot be undone.\n\nType CLEAR ATTENDANCE to confirm:`
+  );
+  if(confirmation!==confirmPhrase){toast('No changes were made.');return;}
+
+  const button=$('clearAttendanceBtn');button.disabled=true;button.textContent='Clearing…';
+  try{
+    let data,error;
+    if(scopeModal==='all'){
+      ({data,error}=await db.rpc('clear_all_attendance'));
+    }else{
+      ({data,error}=await db.rpc('clear_attendance_for_date',{p_attendance_date:selectedDate}));
+    }
+    if(error)throw error;
+
+    // --- Step 4: Wipe local in-memory state & offline cache ---
+    if(scopeModal==='all'){
+      dailyAttendance=[];
+      // Persist cleared state for the current date into the snapshot cache
+      saveSnapshot(selectedDate);
+      // Clear all dates from offline cache
+      const cache=readCache();
+      if(cache){cache.dates={};writeCache(cache);offlineSnapshot=cache;}
+      // Clear entire offline queue for all participants (students and officers)
+      const remainingQueue=readQueue().filter(e=>!allParticipantIds.has(e.participant_id));
+      writeQueue(remainingQueue);
+    }else{
+      dailyAttendance=[];
+      saveSnapshot(selectedDate);
+      // Clear only queue items for the selected date (all participant types)
+      const remainingQueue=readQueue().filter(e=>!(e.attendance_date===selectedDate&&allParticipantIds.has(e.participant_id)));
+      writeQueue(remainingQueue);
+    }
+
+    currentPage=0;renderStats();renderParticipants();renderRecent();updateConnectivity();
+    const clearedCount=data??0;
+    toast(scopeModal==='all'
+      ?`Done! ${clearedCount} check-in record(s) have been cleared from all event dates.`
+      :`Done! ${clearedCount} check-in record(s) have been cleared for ${dateLabel(selectedDate)}.`
+    );
+    setTimeout(()=>loadSelectedDate(),600);
+  }catch(err){
+    toast(err.message||'Something went wrong and the records could not be cleared. Please run clear-attendance-admin.sql in Supabase first, then try again.');
+  }finally{button.disabled=false;button.textContent='Clear Attendance…';}
 }
 
 function updateLocalRosterCache(deactivatedIds){

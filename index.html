@@ -362,7 +362,7 @@
         </div>
 
         <div class="schedule-footer">
-          <span id="timeHelp" class="help-text">Enter times such as 7:00 AM or 1:30 PM. Scheduled times guide the kiosk display; actual attendance is stamped with exact server timestamps.</span>
+          <span id="timeHelp" class="help-text">Enter times like 7:00 AM or 1:30 PM. These times guide the student kiosk, while exact check-in times are recorded automatically.</span>
           <button id="saveSchedule" class="button primary" type="button">Save schedule for this date</button>
         </div>
       </section>
@@ -377,6 +377,7 @@
           <p class="muted">Filter by department or status, search by student name or student number, and manage attendance records.</p>
         </div>
         <div class="roster-actions">
+          <button id="clearAttendanceBtn" class="button danger" type="button">Clear Attendance…</button>
           <button id="deactivateAllStudents" class="button danger" type="button">Deactivate All Students</button>
           <button id="exportCsv" class="button outline export-btn" type="button">
             <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
@@ -607,6 +608,7 @@
     </div>
   </main>
 </div>
+</div><!-- /#dashboardWrapper -->
 
 <div id="toast" class="toast" role="status"></div>
 

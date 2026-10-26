@@ -57,8 +57,21 @@ function showStudentConfirmModal(message) {
       </div>
     </div>`;
     document.body.appendChild(modal);
-    modal.querySelector('.btn-cancel').onclick = () => { modal.remove(); resolve(false); };
-    modal.querySelector('.btn-confirm').onclick = () => { modal.remove(); resolve(true); };
+
+    const cleanup = (result) => {
+      window.removeEventListener('keydown', onKey);
+      modal.remove();
+      resolve(result);
+    };
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') cleanup(false);
+    };
+    window.addEventListener('keydown', onKey);
+
+    modal.onclick = (e) => { if (e.target === modal) cleanup(false); };
+    modal.querySelector('.btn-cancel').onclick = () => cleanup(false);
+    modal.querySelector('.btn-confirm').onclick = () => cleanup(true);
   });
 }
 
@@ -102,6 +115,14 @@ function timeLabel(v) {
   }).format(d).replace(/\s+/g, ' ');
 }
 
+function setTodayLabel(text) {
+  const el = $('todayLabel');
+  if (!el) return;
+  const span = el.querySelector('span');
+  if (span) span.textContent = text;
+  else el.textContent = text;
+}
+
 function toast(s) {
   const el = $('toast');
   if (!el) return;
@@ -113,19 +134,19 @@ function toast(s) {
 function setStatusText() {
   const enabled = ACTIONS.filter((a) => controls?.[`enable_${a.action}`]);
   const open = enabled.length > 0;
-  $('portalStatus').textContent = open ? `${enabled.length} attendance action${enabled.length === 1 ? '' : 's'} currently open` : 'Attendance is currently closed';
-  $('portalHint').textContent = open ? 'Choose only the action shown as available for the current session.' : 'Please wait for the SSC admin to activate an attendance action.';
+  $('portalStatus').textContent = open ? `${enabled.length} check-in action${enabled.length === 1 ? '' : 's'} is now open` : 'Check-in is currently closed';
+  $('portalHint').textContent = open ? 'Tap the action that matches your current session.' : 'Please wait for the SSC Officer to open check-in.';
   $('statusDot').classList.toggle('open', open);
   $('statusDot').classList.toggle('closed', !open);
-  $('actionStatus').innerHTML = open ? enabled.map((a) => `<div class="status-chip enabled">${safe(a.short)}<br>OPEN</div>`).join('') : '<div class="empty-state">No actions are open right now.</div>';
+  $('actionStatus').innerHTML = open ? enabled.map((a) => `<div class="status-chip enabled">${safe(a.short)}<br>OPEN</div>`).join('') : '<div class="empty-state">No check-in actions are open right now.</div>';
 }
 
 async function refreshControls() {
   if (!db || busy) return;
   const { data, error } = await db.rpc('get_public_attendance_controls');
   if (error) {
-    $('portalStatus').textContent = 'Could not load attendance status';
-    $('portalHint').textContent = 'Refresh when the internet connection is available.';
+    $('portalStatus').textContent = 'Could not check attendance status';
+    $('portalHint').textContent = 'Please check your internet connection and tap Refresh.';
     console.error('Error fetching public attendance controls:', error);
     return;
   }
@@ -137,7 +158,7 @@ async function refreshControls() {
 function renderSearchResults(rows) {
   const el = $('searchResults');
   if (!rows?.length) {
-    el.innerHTML = '<div class="empty-state">No matching names found. Check the spelling and try again.</div>';
+    el.innerHTML = '<div class="empty-state">No matching names found. Please check your spelling and try again.</div>';
     return;
   }
 
@@ -179,18 +200,22 @@ async function searchStudents() {
 
   $('searchResults').innerHTML = '<div class="empty-state">Searching…</div>';
   try {
-    const { data, error } = await db.rpc('search_active_students', {
+    let queryBuilder = db.rpc('search_active_students', {
       p_query: q,
       p_station_key: STATION_KEY
-    }, { abortSignal: searchAbortController.signal });
+    });
+    if (typeof queryBuilder.abortSignal === 'function') {
+      queryBuilder = queryBuilder.abortSignal(searchAbortController.signal);
+    }
+    const { data, error } = await queryBuilder;
 
     // Stale response guard: discard if user typed more or triggered a newer search
     if (currentSeq !== searchSequence) return;
 
     if (error) {
       if (error.code === '42901' || /rate limit/i.test(error.message)) {
-        $('searchResults').innerHTML = '<div class="empty-state">Please pause a few seconds before searching again.</div>';
-        toast('Rate limit reached. Please wait a moment.');
+        $('searchResults').innerHTML = '<div class="empty-state">Please wait a few seconds before searching again.</div>';
+        toast('Please wait a moment before searching again.');
         return;
       }
       $('searchResults').innerHTML = '<div class="empty-state">Search is temporarily unavailable. Please try again.</div>';
@@ -201,7 +226,7 @@ async function searchStudents() {
     renderSearchResults(data || []);
   } catch (err) {
     if (err.name === 'AbortError' || currentSeq !== searchSequence) return;
-    $('searchResults').innerHTML = '<div class="empty-state">Network timeout. Please try again.</div>';
+    $('searchResults').innerHTML = '<div class="empty-state">Connection took too long. Please try again.</div>';
   }
 }
 
@@ -219,7 +244,7 @@ function resetStudent() {
     $('studentSearch').disabled = false;
     $('studentSearch').value = '';
   }
-  $('searchResults').innerHTML = '<div class="empty-state">Start by searching for your name.</div>';
+  $('searchResults').innerHTML = '<div class="empty-state">Start typing your name to search.</div>';
   if ($('studentSearch')) $('studentSearch').focus();
 }
 
@@ -228,7 +253,7 @@ async function selectStudent(p) {
   confirming = true;
   try {
     clearTimeout(autoResetTimer);
-    const isConfirmed = await showStudentConfirmModal(`Is this you?\n\n${p.full_name}\n\nTap Confirm if YES, Cancel if NO.`);
+    const isConfirmed = await showStudentConfirmModal(`Is this your name?\n\n${p.full_name}\n\nTap Confirm if YES, or Cancel if NO.`);
     if (!isConfirmed) return;
     selectedStudent = p;
     $('selectedPanel').classList.remove('hidden');
@@ -258,16 +283,20 @@ async function loadStudentState() {
   const currentSeq = ++stateSequence;
 
   try {
-    const { data, error } = await db.rpc('get_student_attendance_state', {
+    let stateQuery = db.rpc('get_student_attendance_state', {
       p_participant_id: targetStudentId,
       p_station_key: STATION_KEY
-    }, { abortSignal: stateAbortController.signal });
+    });
+    if (typeof stateQuery.abortSignal === 'function') {
+      stateQuery = stateQuery.abortSignal(stateAbortController.signal);
+    }
+    const { data, error } = await stateQuery;
 
     // Stale response guard: discard if student has switched or newer request completed
     if (currentSeq !== stateSequence || !selectedStudent || selectedStudent.id !== targetStudentId) return;
 
     if (error) {
-      $('studentActions').innerHTML = '<div class="empty-state">Could not load this student’s attendance status. Please refresh.</div>';
+      $('studentActions').innerHTML = '<div class="empty-state">Could not load check-in buttons. Please tap Refresh.</div>';
       console.error('get_student_attendance_state error:', error);
       return;
     }
@@ -284,8 +313,8 @@ async function loadStudentState() {
       if (recorded) {
         return `<article class="action-card"><div class="action-title">${safe(a.label)}</div><div class="action-detail">Already recorded today</div><div class="recorded-pill">✓ ${safe(timeLabel(recorded))} PHT</div></article>`;
       }
-      return `<article class="action-card enabled"><div class="action-title">${safe(a.label)}</div><div class="action-detail">Available now · Philippine Time</div><button class="button action-button" type="button" data-action="${a.action}">Record ${safe(a.label)} →</button></article>`;
-    }).join('') || '<div class="empty-state">No attendance actions are currently available. Please wait for the admin to open a session.</div>';
+      return `<article class="action-card enabled"><div class="action-title">${safe(a.label)}</div><div class="action-detail">Open now · Philippine Time</div><button class="button action-button" type="button" data-action="${a.action}">Save ${safe(a.label)} →</button></article>`;
+    }).join('') || '<div class="empty-state">No check-in actions are open right now. Please wait for an SSC officer to open one.</div>';
 
     // Bind Click Events
     $('studentActions').querySelectorAll('[data-action]').forEach((btn) => {
@@ -296,7 +325,7 @@ async function loadStudentState() {
     });
   } catch (err) {
     if (err.name === 'AbortError' || currentSeq !== stateSequence) return;
-    $('studentActions').innerHTML = '<div class="empty-state">Network error loading attendance state.</div>';
+    $('studentActions').innerHTML = '<div class="empty-state">Connection problem. Please tap Refresh.</div>';
   }
 }
 
@@ -317,8 +346,8 @@ async function recordAction(action, button) {
   if ($('studentSearch')) $('studentSearch').disabled = true;
   if ($('refreshStatus')) $('refreshStatus').disabled = true;
 
-  button.textContent = 'Recording…';
-  $('studentMessage').textContent = 'Submitting to secure attendance ledger…';
+  button.textContent = 'Saving…';
+  $('studentMessage').textContent = 'Saving your attendance, please wait…';
 
   try {
     const eventId = crypto.randomUUID ? crypto.randomUUID() : null;
@@ -331,7 +360,7 @@ async function recordAction(action, button) {
 
     if (error) {
       if (error.code === '42901' || /rate limit/i.test(error.message)) {
-        throw new Error('Device rate limit reached. Please wait a few moments.');
+        throw new Error('Please wait a few moments before trying again.');
       }
       throw error;
     }
@@ -346,24 +375,24 @@ async function recordAction(action, button) {
       }
       const recordedTime = timeLabel(data.recorded_at);
       if (data.already_recorded) {
-        $('studentMessage').innerHTML = `<span class="notice-badge warning">✓ Already Recorded</span> ${safe(selectedStudent.full_name)}: ${safe(actionLabel)} was already recorded today at ${safe(recordedTime)} PHT.`;
+        $('studentMessage').innerHTML = `<span class="notice-badge warning">✓ Already Recorded</span> ${safe(selectedStudent.full_name)}: Your ${safe(actionLabel)} was already recorded at ${safe(recordedTime)} PHT.`;
         toast('Already recorded today.');
       } else {
-        $('studentMessage').innerHTML = `<span class="notice-badge success">✓ Confirmed</span> ${safe(selectedStudent.full_name)}: ${safe(actionLabel)} recorded at ${safe(recordedTime)} PHT.`;
-        toast('Attendance recorded successfully.');
+        $('studentMessage').innerHTML = `<span class="notice-badge success">✓ Saved</span> ${safe(selectedStudent.full_name)}: Your ${safe(actionLabel)} was saved at ${safe(recordedTime)} PHT.`;
+        toast('Attendance saved!');
       }
     } else {
       // Fallback for scalar timestamp
       const recordedTime = timeLabel(data);
-      $('studentMessage').innerHTML = `<span class="notice-badge success">✓ Confirmed</span> ${safe(selectedStudent.full_name)}: ${safe(actionLabel)} recorded at ${safe(recordedTime)} PHT.`;
-      toast('Attendance recorded successfully.');
+      $('studentMessage').innerHTML = `<span class="notice-badge success">✓ Saved</span> ${safe(selectedStudent.full_name)}: Your ${safe(actionLabel)} was saved at ${safe(recordedTime)} PHT.`;
+      toast('Attendance saved!');
     }
 
     await loadStudentState();
     autoResetTimer = setTimeout(() => {
       if (selectedStudent && !busy) {
         resetStudent();
-        toast('Kiosk ready for next student.');
+        toast('Ready for next student.');
       }
     }, 5000);
   } catch (e) {
@@ -405,15 +434,15 @@ window.addEventListener('offline', updateNetworkBadge);
 
 async function init() {
   updateNetworkBadge();
-  $('todayLabel').textContent = `Philippine Time · ${dateLabel(todayPHT())}`;
+  setTodayLabel(`Philippine Time · ${dateLabel(todayPHT())}`);
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js').catch((err) => console.warn('Kiosk service worker registration:', err));
   }
 
   if (!window.supabase) {
-    $('portalStatus').textContent = 'Attendance service unavailable';
-    $('portalHint').textContent = 'Open this portal while connected to the internet.';
+    $('portalStatus').textContent = 'Cannot connect to attendance service';
+    $('portalHint').textContent = 'Please make sure you are connected to the internet and refresh.';
     return;
   }
 
@@ -437,7 +466,7 @@ async function init() {
     }
     searchSequence++;
     $('studentSearch').value = '';
-    $('searchResults').innerHTML = '<div class="empty-state">Start by searching for your name.</div>';
+    $('searchResults').innerHTML = '<div class="empty-state">Start typing your name to search.</div>';
   });
 
   $('changeStudent').addEventListener('click', resetStudent);
