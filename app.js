@@ -885,28 +885,53 @@ function showExportModal(date){
   return new Promise(resolve=>{
     const existing=document.getElementById('_exportModal');if(existing)existing.remove();
     const modal=document.createElement('div');modal.id='_exportModal';
-    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
-    modal.innerHTML=`<div style="background:#fff;border-radius:12px;padding:1.5rem;max-width:440px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2)">
-      <h3 style="margin:0 0 .5rem;font-size:1.15rem">Export Attendance CSV</h3>
-      <p style="margin:0 0 1.25rem;color:#555;font-size:.92rem">Choose records to export for <strong>${safe(dateLabel(date))}</strong>:</p>
-      <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.25rem">
-        <button type="button" class="button primary btn-attendees" style="justify-content:center;padding:.75rem">
-          ✓ Attendees Only (Present Today)
-          <small style="display:block;font-size:.78rem;font-weight:normal;opacity:.85">Only students who recorded attendance</small>
+    modal.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(3px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+    modal.innerHTML=`<div class="export-modal-card" style="background:#fff;border-radius:16px;padding:1.5rem;max-width:520px;width:100%;box-shadow:0 20px 40px -8px rgba(15,23,42,.25),0 0 0 1px rgba(15,23,42,.06);font-family:inherit">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+        <div style="font-size:.7rem;font-weight:800;letter-spacing:.08em;color:#2563eb;text-transform:uppercase">Data Export</div>
+        <span style="font-size:.72rem;background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:6px;font-weight:600">CSV Spreadsheet</span>
+      </div>
+      <h3 style="margin:0 0 .35rem;font-size:1.2rem;font-weight:700;color:#0f172a;letter-spacing:-.01em">Export Attendance CSV</h3>
+      <p style="margin:0 0 1.25rem;color:#64748b;font-size:.875rem;line-height:1.5">Choose records to export for <strong>${safe(dateLabel(date))}</strong>:</p>
+
+      <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.5rem">
+        <button type="button" class="export-option-btn attendees btn-attendees" style="display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;text-align:left;padding:16px 18px;border-radius:12px;border:1.5px solid #cbd5e1;background:#fff;color:#0f172a;cursor:pointer;font-family:inherit;outline:none">
+          <div style="width:40px;height:40px;border-radius:10px;background:#ecfdf5;color:#059669;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;font-weight:bold;line-height:1">✓</div>
+          <div style="flex:1;min-width:0;overflow:hidden">
+            <div style="font-size:.93rem;font-weight:700;color:#0f172a;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Attendees Only (Present Today)</div>
+            <div style="font-size:.8rem;color:#64748b;line-height:1.45;white-space:normal">Only students who recorded at least one check-in today.</div>
+          </div>
+          <span style="color:#94a3b8;font-size:1.2rem;flex-shrink:0">›</span>
         </button>
-        <button type="button" class="button outline btn-all" style="justify-content:center;padding:.75rem">
-          📋 Full Masterlist (Present & Absent)
-          <small style="display:block;font-size:.78rem;font-weight:normal;opacity:.85">All students with Attendance Status</small>
+
+        <button type="button" class="export-option-btn all btn-all" style="display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;text-align:left;padding:16px 18px;border-radius:12px;border:1.5px solid #cbd5e1;background:#fff;color:#0f172a;cursor:pointer;font-family:inherit;outline:none">
+          <div style="width:40px;height:40px;border-radius:10px;background:#eff6ff;color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;line-height:1">📋</div>
+          <div style="flex:1;min-width:0;overflow:hidden">
+            <div style="font-size:.93rem;font-weight:700;color:#0f172a;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Full Masterlist (Present &amp; Absent)</div>
+            <div style="font-size:.8rem;color:#64748b;line-height:1.45;white-space:normal">All students with Attendance Status, including those with no records.</div>
+          </div>
+          <span style="color:#94a3b8;font-size:1.2rem;flex-shrink:0">›</span>
         </button>
       </div>
+
       <div style="display:flex;justify-content:flex-end">
-        <button type="button" class="button ghost btn-cancel">Cancel</button>
+        <button type="button" class="button outline btn-cancel" style="padding:7px 20px">Cancel</button>
       </div>
     </div>`;
     document.body.appendChild(modal);
-    modal.querySelector('.btn-attendees').onclick=()=>{modal.remove();resolve('attendees');};
-    modal.querySelector('.btn-all').onclick=()=>{modal.remove();resolve('all');};
-    modal.querySelector('.btn-cancel').onclick=()=>{modal.remove();resolve(null);};
+
+    const cleanup = (res)=>{
+      window.removeEventListener('keydown', onKey);
+      modal.remove();
+      resolve(res);
+    };
+    const onKey = (e)=>{ if(e.key==='Escape') cleanup(null); };
+    window.addEventListener('keydown', onKey);
+    modal.onclick=(e)=>{ if(e.target===modal) cleanup(null); };
+
+    modal.querySelector('.btn-attendees').onclick=()=>cleanup('attendees');
+    modal.querySelector('.btn-all').onclick=()=>cleanup('all');
+    modal.querySelector('.btn-cancel').onclick=()=>cleanup(null);
   });
 }
 
