@@ -543,8 +543,6 @@ async function recordAction(participantId,action,button){
   const person=participants.find(p=>p.id===participantId);const slot=ACTIONS.find(x=>x.action===action);if(!person||!slot)return;
   const date=$('attendanceDate').value||todayPHT();if(date!==todayPHT()){toast('Attendance can only be recorded for the current Philippine date.');return;}
   const existing=attendanceByParticipant().get(participantId)||{};if(existing[slot.key]){toast(`${person.full_name}: ${slot.label} is already recorded.`);return;}
-  if(action==='morning_time_out'&&!existing.morning_time_in_at){toast('Record Morning Time In first.');return;}
-  if(action==='afternoon_time_out'&&!existing.afternoon_time_in_at){toast('Record Afternoon Time In first.');return;}
   button.disabled=true;button.textContent='Saving…';
   if(!navigator.onLine||serverOffline){queueOfflineAction(person,slot,date);button.disabled=false;return;}
   try{
