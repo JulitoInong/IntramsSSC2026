@@ -1,0 +1,25 @@
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+*.stackdump
+
+# Logs & Diagnostics
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Node (if tooling added later)
+node_modules/
+
+# Local Environment & Secrets
+.env.local
+.env.*.local
+
+# Vercel Project Metadata
+.vercel
+
+# SQL migration files (optional: comment these out if you want them in version control)
+# *.sql
